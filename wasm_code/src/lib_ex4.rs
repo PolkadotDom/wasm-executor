@@ -1,5 +1,5 @@
 #![allow(unused_variables)]
-/// ATTENTION: Before you can use this code, you must change the path in `Cargo.toml`
+// ATTENTION: Before you can use this code, you must change the path in `Cargo.toml`
 
 // Here we define the signatures of the Host Functions described in the Readme
 // extern "C" lets us define the signatures of the host functions
@@ -7,21 +7,30 @@
 //
 // Those function will be translated to "Imports" in wasm,
 // and provided by the executor
-extern "C" {
-    todo!("define set function");
-    todo!("define get function");
-}
+// extern "C" {
+//     todo!("define set function");
+//     todo!("define get function");
+// }
 
-// One inconvenience with the host function definition above is that
-// we have to use the `unsafe` keyword each time we call them.
+extern "C" {
+    pub fn get() -> u32;
+    pub fn set(val: u32);
+}
 
 /// A wrapper around the `set` host function to avoid writing
 // every time 'unsafe'
+#[allow(dead_code)]
 fn set_hf(val: u32) {
-    todo!()
+    unsafe {
+        set(val);
+    }
 }
 
-//TODO also implement get_hf
+fn get_hf() -> u32 {
+    unsafe {
+        get()
+    }
+}
 
 /// Implement the entry point described in the Readme.
 /// The logic may do whatever you want, but you will only be able to
@@ -29,6 +38,8 @@ fn set_hf(val: u32) {
 ///
 /// Remember not to change the name of the entry point for the executor will get confused.
 #[no_mangle]
-fn start() {
-    todo!()
+pub extern "C" fn start() {
+    let mut res = get_hf();
+    res = res + 10;
+    set_hf(res);
 }

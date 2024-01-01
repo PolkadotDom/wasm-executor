@@ -9,5 +9,8 @@ mod executor;
 use executor::executor;
 
 fn main() {
-	executor().unwrap();
+	match executor() {
+		Ok(_) => println!("Did well!"),
+		Err(x) => println!("{:?}", x),
+	} 
 }

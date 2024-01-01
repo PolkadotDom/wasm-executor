@@ -1,7 +1,9 @@
 #![allow(unused_variables)]
 use wasmtime::*;
+use anyhow::anyhow;
 
-/// Helper unction to load a wasm file
+
+/// Helper function to load a wasm file
 /// If the name provided does not end with `.wasm` it is appended.
 fn load_wasm_code(name: &str) -> Result<Vec<u8>, &'static str> {
 	use std::io::Read;
@@ -22,23 +24,23 @@ fn load_wasm_code(name: &str) -> Result<Vec<u8>, &'static str> {
 // This function implements the Executor,
 // you will use wasmtime as Embedder of the wasm code and all the needed documentation
 // is here: https://docs.rs/wasmtime/latest/wasmtime/
-pub fn executor() -> Result<(), String> {
+pub fn executor() -> Result<(), Error> {
 	// TODO 1:
 	// Firstly, the wasm code is needed,
 	// It is represented in a binary format so we will just load it
 	// from the file (you can the use the function just right above).
-	let wasm_code = todo!();
+	let wasm_code = load_wasm_code("/Volumes/BlockDrive/BlockchainDev/wasm-executor/target/wasm32-unknown-unknown/release/wasm_code.wasm").map_err(|e| anyhow!(e))?;
 
 	// TODO 2:
 	// You now need to create the Global compilation environment for
 	// WebAssembly. We will use the default one as they do in the docs.
-	let engine = todo!();
+	let engine = Engine::default();
 
 	// TODO 3:
 	// Compile the Wasm code, the output will represent
 	// the in-memory JIT code which is ready
 	// to be executed after being instantiated
-	let module = todo!();
+	let module = Module::new(&engine, wasm_code)?;
 
 	// TODO 4:
 	// Create the Store, which will contain all the information related to
@@ -46,20 +48,20 @@ pub fn executor() -> Result<(), String> {
 	//
 	// The Store also allows inserting arbitrary data, but we will not use
 	// them in this executor
-	let mut store = todo!();
+	let mut store = Store::new(&engine, 0);
 
 	// TODO 5:
 	// Instantiate the wasm code
-	let instance = todo!();
+	let instance = Instance::new(&mut store, &module, &[]).expect("lolilol");
 
 	// TODO 6:
 	// Extract the entry point "div" from the just-instantiated code
-	let div = todo!();
+	let div = instance.get_typed_func::<(i32, i32), i32>(&mut store, "div")?;
 
 	// TODO 7:
 	// Execute the wasm function!
 	let (x, y) = (10, 2);
-	let result: i32 = todo!();
+	let result : i32 = div.call(&mut store, (x, y) )?;
 
 	println!("{x} / {y} = {result}");
 

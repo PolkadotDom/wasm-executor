@@ -45,22 +45,37 @@ pub fn executor(name: &str, shared_state: SharedState) -> Result<SharedState, St
 	// WebAssembly objects such as functions, instances, memories, etc
 	//
 	// The Store allows inserting also arbitrary data (SharedState)
-	todo!();
+	let mut store = Store::new(&engine, shared_state);
 
 	// TODO 2:
-	// Crete the Host Functions
-	todo!();
+	// Create the Host Functions
+	let mut linker = Linker::<SharedState>::new(&engine);
+	
+	//get
+	linker.func_wrap("env", "get", |caller: Caller<'_, SharedState>| {
+		println!("Get being called {}", caller.data().val);
+		caller.data().val
+	}).map_err(|err| err.to_string())?;
+
+	//set
+	linker.func_wrap("env", "set", |mut caller: Caller<'_, SharedState>, value: u32| {
+		println!("Set being called {}", value);
+		let data = caller.data_mut();
+		data.val = value;
+	}).map_err(|err| err.to_string())?;
 
 	// TODO 3:
 	// Instantiate the wasm code
-	todo!();
+	let instance = linker.instantiate(&mut store, &module).map_err(|err| err.to_string())?;
 
 	// TODO 4:
 	// Extract the entry point "start" from the just instantiated link
 	// end execute it!!
-	todo!();
+	let start = instance.get_typed_func::<(),()>(&mut store, "start").map_err(|err| err.to_string())?;
+	start.call(&mut store, ()).map_err(|err| err.to_string())?;
 
 	// TODO 5:
 	// Just return the new SharedState
-	todo!()
+	//todo
+	return Ok(store.into_data());
 }
